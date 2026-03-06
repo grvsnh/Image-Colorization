@@ -20,3 +20,5 @@ result.png
 # OS
 .DS_Store
 Thumbs.db
+
+*.h5
