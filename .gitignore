@@ -4,21 +4,31 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Virtual environment
+# Virtual environments
 venv/
 .env/
+.envrc/
 
-# Dataset cache
-*.tar.gz
+# Model training artifacts
+*.h5
+*.ckpt
+*.weights
 
-# Results
+# Generated outputs
+colorized_images/
 result.png
+
+# Dataset / archives
+*.tar.gz
+*.zip
 
 # Jupyter
 .ipynb_checkpoints/
 
-# OS
+# System files
 .DS_Store
 Thumbs.db
 
-*.h5
+# IDE
+.vscode/
+.idea/

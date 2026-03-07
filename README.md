@@ -1,85 +1,199 @@
 # 🎨 Image Colorization using Deep Learning
 
-This project implements **automatic image colorization** using a deep learning model trained on the CIFAR-10 dataset.
-The model learns to convert **grayscale images into color images** using a convolutional neural network.
+Automatic image colorization using a **U-Net based deep neural network** trained to convert grayscale images into realistic color images.
 
-The goal of this project is to explore how neural networks can **predict plausible colors from grayscale inputs**.
+This project allows users to **colorize black & white photos instantly** using a pretrained model — no training required.
+
+Users can simply clone the repository and run:
+
+```
+python colorize.py image.jpg
+```
+
+The model will automatically generate a colorized version of the image.
 
 ---
 
-## 📌 Features
+# 📸 Example
 
-* Converts grayscale images into color images
-* Uses a convolutional neural network for color prediction
-* Trained using the CIFAR-10 dataset
-* Saves generated outputs as `result.png`
-* Supports testing on grayscale images
+| Original                 | Colorized                |
+| ------------------------ | ------------------------ |
+| ![Demo](images/demo.png) | ![Demo](images/demo.png) |
 
----
-
-## 🧠 Model Overview
-
-The model takes a grayscale image as input and predicts the color version.
-
-Pipeline:
-
-```
-Grayscale Image (32x32x1)
-        ↓
-Convolutional Neural Network
-        ↓
-Predicted Color Image (32x32x3)
-```
-
-The network learns patterns such as:
-
-* edges
-* shapes
-* textures
-
-to infer possible colors.
+*(Example output from the trained model)*
 
 ---
 
-## 📂 Project Structure
+# 🧠 How It Works
+
+The model uses **deep learning based image-to-image translation** to predict color information from grayscale images.
+
+The pipeline follows a widely used **LAB colorization approach**.
+
+### Colorization Pipeline
 
 ```
-Image-Colorization
-│
-├── colorize.py              # Main training and colorization script
-├── image_colourisation.py  # Initial GAN experiment
-├── requirements.txt
-├── .gitignore
-└── result.png               # Generated output image
+Input Image
+↓
+Convert RGB → LAB
+↓
+Extract L channel (grayscale)
+↓
+Predict AB color channels using neural network
+↓
+Combine L + AB
+↓
+Convert LAB → RGB
+↓
+Colorized Image
 ```
+
+### Why LAB Color Space?
+
+LAB separates brightness and color:
+
+| Channel | Meaning                           |
+| ------- | --------------------------------- |
+| **L**   | Lightness (grayscale information) |
+| **A**   | Green ↔ Red color component       |
+| **B**   | Blue ↔ Yellow color component     |
+
+Instead of predicting all RGB values, the network only predicts **A and B color channels**, making training easier and improving stability.
 
 ---
 
-## 📊 Dataset
+# 🧩 Model Architecture
 
-This project uses the **CIFAR-10 dataset**.
+The model uses a **U-Net convolutional neural network**.
+
+U-Net is widely used in:
+
+* image segmentation
+* medical imaging
+* image restoration
+* colorization
+
+### Why U-Net?
+
+U-Net uses **skip connections** that preserve spatial information.
+
+```
+Encoder
+↓
+Feature extraction
+↓
+Decoder
+↓
+Color reconstruction
+```
+
+Architecture overview:
+
+```
+Input (128x128 grayscale)
+
+Encoder
+↓
+Conv → Conv → Pool
+↓
+Conv → Conv → Pool
+↓
+Bottleneck
+
+Decoder
+↓
+Upsample → Concatenate
+↓
+Conv → Conv
+↓
+Upsample → Concatenate
+↓
+Conv → Conv
+
+Output (128x128 AB color channels)
+```
+
+Advantages:
+
+* preserves image structure
+* produces smoother colors
+* relatively lightweight model
+
+---
+
+# 📊 Dataset Used
+
+Training was performed using the **Oxford-IIIT Pet Dataset**.
+
+This dataset contains thousands of high-resolution images of cats and dogs and is commonly used for computer vision research.
 
 Dataset properties:
 
-* 60,000 images
-* 32×32 resolution
-* 10 classes
-* RGB color images
+| Feature    | Value           |
+| ---------- | --------------- |
+| Images     | ~7,000          |
+| Resolution | High resolution |
+| Classes    | 37 pet breeds   |
 
-During training, the images are converted to grayscale and the model learns to reconstruct the original colors.
+Images were resized to:
+
+```
+128 × 128
+```
+
+for training.
 
 ---
 
-## ⚙️ Installation
+# ⚙️ Training Details
+
+| Parameter       | Value              |
+| --------------- | ------------------ |
+| Model           | U-Net              |
+| Input size      | 128×128            |
+| Color space     | LAB                |
+| Loss function   | Mean Squared Error |
+| Optimizer       | Adam               |
+| Training device | GPU                |
+| Framework       | TensorFlow / Keras |
+
+Training was performed on a GPU using **Google Colab**.
+
+---
+
+# 📦 Pretrained Model
+
+The repository includes a pretrained model:
+
+```
+colorization_model.keras
+```
+
+Model characteristics:
+
+| Property     | Value             |
+| ------------ | ----------------- |
+| Architecture | U-Net             |
+| Input        | 128×128 grayscale |
+| Output       | AB color channels |
+| File size    | ~12-18 MB         |
+
+The model is intentionally kept small so it can be **stored directly in the repository** and downloaded quickly.
+
+Users **do not need to train the model themselves**.
+
+---
+
+# 🚀 Installation
 
 Clone the repository:
 
 ```
-git clone https://github.com/grvsnh/Image-Colorization.git
+git clone https://github.com/grvsnh/Image-Colorization
 cd Image-Colorization
 ```
 
-Create a virtual environment:
+Create a virtual environment (recommended):
 
 ```
 python -m venv venv
@@ -94,65 +208,124 @@ pip install -r requirements.txt
 
 ---
 
-## 🚀 Running the Project
+# ▶️ Usage
 
-Run the training script:
-
-```
-python colorize.py
-```
-
-After training completes, the model generates colorized images and saves them as:
+Run the colorization script:
 
 ```
-result.png
+python colorize.py path_to_image
 ```
 
----
-
-## 🖼 Example Output
-
-The output image contains:
+Example:
 
 ```
-Original Image
-Grayscale Image
-Predicted Color Image
+python colorize.py images/bw_portrait.jpg
 ```
 
-Example layout:
+Output will be saved to:
 
 ```
-Original | Grayscale | Predicted
+colorized_images/
+```
+
+Example result:
+
+```
+colorized_images/colorized_bw_portrait.jpg
 ```
 
 ---
 
-## 🔬 Technologies Used
+# 🖼 Included Test Images
+
+The repository contains sample grayscale images in:
+
+```
+images/
+```
+
+Example files:
+
+```
+bw_portrait.jpg
+bw_landscape.jpg
+bw_street.jpg
+bw_car.jpg
+```
+
+You can test the model immediately:
+
+```
+python colorize.py images/bw_landscape.jpg
+```
+
+---
+
+# 📁 Project Structure
+
+```
+Image-Colorization
+│
+├── colorize.py                # Main inference script
+├── colorization_model.keras   # Pretrained model
+│
+├── images/                    # Sample grayscale images
+│   ├── demo.png
+│   ├── bw_portrait.jpg
+│   ├── bw_landscape.jpg
+│   ├── bw_street.jpg
+│   └── bw_car.jpg
+│
+├── README.md
+├── LICENSE
+├── requirements.txt
+└── .gitignore
+```
+
+Generated images are saved in:
+
+```
+colorized_images/
+```
+
+(This folder is ignored by Git.)
+
+---
+
+# 🌐 Future Improvements
+
+Planned improvements include:
+
+* Streamlit web application for live colorization
+* support for higher resolution images
+* perceptual loss for better color realism
+* training on larger datasets
+* automatic batch colorization
+
+---
+
+# 🧪 Technologies Used
 
 * Python
-* TensorFlow / Keras
+* TensorFlow
+* Keras
 * OpenCV
 * NumPy
 * Matplotlib
-* scikit-learn
 
 ---
 
-## 🚀 Future Improvements
+# 📜 License
 
-Possible improvements include:
+This project is licensed under the MIT License.
 
-* Using a **U-Net architecture** for better color prediction
-* Training on higher-resolution datasets
-* Implementing a **GAN-based colorization model**
-* Creating a **web interface for image uploads**
-* Supporting real-world grayscale photographs
+See the LICENSE file for details.
 
 ---
 
-## 📜 License
+# 👨‍💻 Author
 
-This project is open-source and available under the MIT License.
+Developed by **grvsnh**
 
----
+This project explores deep learning techniques for **automatic grayscale image colorization** and demonstrates how lightweight neural networks can produce realistic color predictions.
+
