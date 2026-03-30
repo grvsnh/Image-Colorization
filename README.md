@@ -14,6 +14,8 @@ This project demonstrates both:
 👉 Deployable via Streamlit Cloud
 (First run may take a few seconds to download the pretrained model)
 
+[Click for Live Demo](https://img-color.streamlit.app/)
+
 ---
 
 ✨ Features
