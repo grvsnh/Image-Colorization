@@ -1,34 +1,82 @@
-# Python
+# =============================
+# PYTHON
+
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.so
 
-# Virtual environments
+# =============================
+# VIRTUAL ENV
+
 venv/
 .env/
 .envrc/
 
-# Model training artifacts
+# =============================
+# STREAMLIT CACHE
+
+.streamlit/
+
+# =============================
+# MODEL FILES (IMPORTANT)
+
+# Local trained models (keep if needed, else ignore)
+# models/local-trained/*.keras
+
+# Pretrained models (auto-downloaded)
+
+models/pre-trained/*
+!models/pre-trained/.keep
+
+# =============================
+# TRAINING ARTIFACTS
+
 *.h5
 *.ckpt
 *.weights
+*.keras
 
-# Generated outputs
+# =============================
+# OUTPUT FILES
+
 colorized_images/
-result.png
+*.png
+*.jpg
+*.jpeg
 
-# Dataset / archives
+# =============================
+# DATASETS / ARCHIVES
+
 *.tar.gz
 *.zip
+data/
 
-# Jupyter
+# =============================
+# JUPYTER
+
 .ipynb_checkpoints/
 
-# System files
+# =============================
+# SYSTEM FILES
+
 .DS_Store
 Thumbs.db
 
-# IDE
+# =============================
+# IDE / EDITORS
+
 .vscode/
 .idea/
+
+# =============================
+# LOGS
+
+*.log
+
+# =============================
+# MISC
+
+*.bak
+*.tmp
