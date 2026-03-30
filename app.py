@@ -8,19 +8,16 @@ st.set_page_config(page_title="Image Colorizer", layout="wide")
 st.title("🎨 Image Colorization")
 st.caption("Compare Local vs Pretrained Models")
 
-# UPLOAD
-
 uploaded_file = st.file_uploader("Upload Image", type=["jpg", "png", "jpeg"])
 
-image = None
-
 if uploaded_file:
+
     file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
     image = cv2.imdecode(file_bytes, 1)
 
-# MODEL SELECT
-
-if image is not None:
+    st.image(
+        cv2.cvtColor(image, cv2.COLOR_BGR2RGB), caption="Uploaded Image", width=200
+    )
 
     mode_option = st.selectbox(
         "Choose Mode", ["Use Both (Compare)", "Local Only", "Pretrained Only"]
@@ -34,20 +31,13 @@ if image is not None:
 
     mode = mode_map[mode_option]
 
-    # UPLOAD PREVIEW
-
-    st.image(
-        cv2.cvtColor(image, cv2.COLOR_BGR2RGB), caption="Uploaded Image", width=200
-    )
-
     if st.button("🚀 Colorize"):
 
-        with st.spinner("Processing..."):
+        with st.spinner("Processing... (first run downloads model)"):
+
             result = colorize(image, mode=mode)
 
         st.markdown("---")
-
-        # DUAL MODE
 
         if mode == "both":
 
@@ -58,7 +48,7 @@ if image is not None:
                 st.image(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), width="stretch")
 
             with col2:
-                st.subheader("Local Model")
+                st.subheader("Local")
                 st.image(
                     cv2.cvtColor(result["local"], cv2.COLOR_BGR2RGB), width="stretch"
                 )
@@ -70,9 +60,8 @@ if image is not None:
                     width="stretch",
                 )
 
-        # INDIVIDUAL MODES
-
         else:
+
             col1, col2 = st.columns(2)
 
             with col1:
@@ -83,18 +72,10 @@ if image is not None:
                 st.subheader("Colorized")
                 st.image(cv2.cvtColor(result, cv2.COLOR_BGR2RGB), width="stretch")
 
-        # DOWNLOAD (PRETRAINED BEST)
-
-        if mode == "both":
-            final_img = result["pretrained"]
-        else:
-            final_img = result
+        final_img = result["pretrained"] if mode == "both" else result
 
         _, buffer = cv2.imencode(".png", final_img)
 
         st.download_button(
-            "⬇️ Download Best Output",
-            buffer.tobytes(),
-            file_name="colorized.png",
-            mime="image/png",
+            "⬇️ Download", buffer.tobytes(), file_name="colorized.png", mime="image/png"
         )

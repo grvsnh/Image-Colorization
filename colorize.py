@@ -1,61 +1,137 @@
 import cv2
 import numpy as np
+import os
+import urllib.request
+import time
+import streamlit as st
 from tensorflow.keras.models import load_model
 
+# =============================
 # PATHS
-
+# =============================
 CORE_MODEL_PATH = "models/local-trained/colorization_model.keras"
+MODEL_DIR = "models/pre-trained"
 
-PROTO_PATH = "models/pre-trained/colorization_deploy_v2.prototxt"
-MODEL_PATH = "models/pre-trained/colorization_release_v2.caffemodel"
-POINTS_PATH = "models/pre-trained/pts_in_hull.npy"
-
-core_model = None
-net = None
-
-
-# LOAD MODELS
+# =============================
+# YOUR VERIFIED MIRRORS ✅
+# =============================
+PROTO_URL = "https://huggingface.co/spaces/BilalSardar/Black-N-White-To-Color/resolve/main/colorization_deploy_v2.prototxt"
+MODEL_URL = "https://huggingface.co/spaces/BilalSardar/Black-N-White-To-Color/resolve/main/colorization_release_v2.caffemodel"
+POINTS_URL = "https://huggingface.co/spaces/BilalSardar/Black-N-White-To-Color/resolve/main/pts_in_hull.npy"
 
 
+# =============================
+# DOWNLOAD WITH PROGRESS + SPEED
+# =============================
+def download_file(url, path, desc):
+
+    if os.path.exists(path):
+        return
+
+    progress_bar = st.progress(0)
+    status = st.empty()
+
+    start_time = time.time()
+
+    def reporthook(block_num, block_size, total_size):
+        downloaded = block_num * block_size
+        progress = min(downloaded / total_size, 1.0)
+
+        elapsed = time.time() - start_time
+        speed = downloaded / (1024 * 1024 * elapsed + 1e-5)
+
+        total_mb = total_size / (1024 * 1024)
+        done_mb = downloaded / (1024 * 1024)
+
+        progress_bar.progress(progress)
+        status.text(
+            f"{desc}: {done_mb:.1f}/{total_mb:.1f} MB "
+            f"({progress*100:.0f}%) | {speed:.2f} MB/s"
+        )
+
+    try:
+        urllib.request.urlretrieve(url, path, reporthook)
+
+        status.text(f"{desc} completed ✅")
+        time.sleep(0.5)
+
+    except Exception:
+        progress_bar.empty()
+        status.empty()
+        st.warning(f"⚠️ Failed to download {desc}. Pretrained model disabled.")
+        return False
+
+    progress_bar.empty()
+    status.empty()
+    return True
+
+
+# =============================
+# ENSURE FILES
+# =============================
+def ensure_pretrained_files():
+    os.makedirs(MODEL_DIR, exist_ok=True)
+
+    proto_path = os.path.join(MODEL_DIR, "colorization_deploy_v2.prototxt")
+    model_path = os.path.join(MODEL_DIR, "colorization_release_v2.caffemodel")
+    points_path = os.path.join(MODEL_DIR, "pts_in_hull.npy")
+
+    ok1 = download_file(PROTO_URL, proto_path, "Config")
+    ok2 = download_file(MODEL_URL, model_path, "Model (~100MB)")
+    ok3 = download_file(POINTS_URL, points_path, "Color data")
+
+    if not (ok1 and ok2 and ok3):
+        return None, None, None
+
+    return proto_path, model_path, points_path
+
+
+# =============================
+# LOAD LOCAL MODEL
+# =============================
+@st.cache_resource
 def load_local_model():
-    global core_model
-    if core_model is None:
-        core_model = load_model(CORE_MODEL_PATH, compile=False)
-    return core_model
+    return load_model(CORE_MODEL_PATH, compile=False)
 
 
+# =============================
+# LOAD PRETRAINED MODEL
+# =============================
+@st.cache_resource
 def load_pretrained():
-    global net
-    if net is None:
-        net = cv2.dnn.readNetFromCaffe(PROTO_PATH, MODEL_PATH)
 
-        pts = np.load(POINTS_PATH)
-        pts = pts.transpose().reshape(2, 313, 1, 1)
+    proto_path, model_path, points_path = ensure_pretrained_files()
 
-        class8 = net.getLayerId("class8_ab")
-        conv8 = net.getLayerId("conv8_313_rh")
+    if proto_path is None:
+        return None
 
-        net.getLayer(class8).blobs = [pts.astype("float32")]
-        net.getLayer(conv8).blobs = [np.full([1, 313], 2.606, dtype="float32")]
+    net = cv2.dnn.readNetFromCaffe(proto_path, model_path)
+
+    pts = np.load(points_path)
+    pts = pts.transpose().reshape(2, 313, 1, 1)
+
+    class8 = net.getLayerId("class8_ab")
+    conv8 = net.getLayerId("conv8_313_rh")
+
+    net.getLayer(class8).blobs = [pts.astype("float32")]
+    net.getLayer(conv8).blobs = [np.full([1, 313], 2.606, dtype="float32")]
 
     return net
 
 
+# =============================
 # COLOR BOOST
-
-
+# =============================
 def boost_colors(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    hsv[:, :, 1] = np.clip(hsv[:, :, 1] * 1.8, 0, 255)  # saturation
-    hsv[:, :, 2] = np.clip(hsv[:, :, 2] * 1.2, 0, 255)  # brightness
-
+    hsv[:, :, 1] = np.clip(hsv[:, :, 1] * 1.8, 0, 255)
+    hsv[:, :, 2] = np.clip(hsv[:, :, 2] * 1.2, 0, 255)
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
 
+# =============================
 # LOCAL MODEL
-
-
+# =============================
 def colorize_local(image):
 
     model = load_local_model()
@@ -68,7 +144,6 @@ def colorize_local(image):
 
     pred_ab = model.predict(L, verbose=0)[0]
 
-    # [-1,1] → LAB scale
     pred_ab = (pred_ab + 1) * 128
     pred_ab = cv2.resize(pred_ab, (128, 128))
 
@@ -77,20 +152,20 @@ def colorize_local(image):
     lab_out[:, :, 1:] = pred_ab
 
     result = cv2.cvtColor(lab_out.astype("uint8"), cv2.COLOR_LAB2BGR)
-
     result = cv2.resize(result, (image.shape[1], image.shape[0]))
 
-    result = boost_colors(result)
-
-    return result
+    return boost_colors(result)
 
 
+# =============================
 # PRETRAINED MODEL
-
-
+# =============================
 def colorize_pretrained(image):
 
     net = load_pretrained()
+
+    if net is None:
+        return image  # fallback
 
     img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     img_rgb = img_rgb.astype("float32") / 255.0
@@ -119,9 +194,9 @@ def colorize_pretrained(image):
     return colorized
 
 
+# =============================
 # MAIN
-
-
+# =============================
 def colorize(image, mode="pretrained"):
 
     if mode == "local":

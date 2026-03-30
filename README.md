@@ -1,54 +1,62 @@
-# 🎨 Image Colorization using Deep Learning
+🎨 Image Colorization using Deep Learning
 
 A dual-model image colorization system that converts black & white images into realistic color images using deep learning.
 
-This project combines:
+This project demonstrates both:
 
-- A **custom-trained lightweight model**
-- A **state-of-the-art pretrained model (Zhang et al., ECCV 2016)**
+- 🧠 A custom-trained model (built from scratch)
+- 🎯 A state-of-the-art pretrained model (Zhang et al., ECCV 2016)
 
 ---
 
-## 🚀 Features
+🚀 Live Demo
 
-- 🧠 Dual Model System
+👉 Deployable via Streamlit Cloud
+(First run may take a few seconds to download the pretrained model)
+
+---
+
+✨ Features
+
+- 🔄 Dual Model System
     - Local trained model (fast, lightweight)
     - Pretrained model (high-quality results)
 
-- 🔄 Comparison Mode  
-  View **Original vs Local vs Pretrained** side-by-side
+- 🆚 Comparison Mode
+    - View Original vs Local vs Pretrained side-by-side
 
-- 🎨 Color Boosting  
-  Enhances saturation for better visual output in the custom model
+- 🎨 Color Boosting
+    - Enhances saturation for better visual output in local model
 
-- 📱 Mobile-Friendly UI  
-  Clean Streamlit interface optimized for all devices
+- 📥 Smart Model Handling
+    - Pretrained model is downloaded automatically at runtime
+    - Avoids GitHub file size limits
 
-- ⚡ Fast Processing  
-  Real-time colorization
+- 📱 Mobile Friendly UI
+    - Optimized layout for all screen sizes
 
 ---
 
-## 🧠 Models Used
+🧠 Models Used
 
-### 🔹 1. Local Model (Custom Trained)
+🔹 Local Model (Custom Trained)
 
 - Trained on Oxford-IIIT dataset
 - Input: Grayscale (L channel)
 - Output: Color channels (AB)
-- Architecture: CNN-based encoder-decoder
+- Architecture: CNN
 - Loss: MAE
 - Activation: Tanh (full color range)
 
-> Designed to demonstrate training pipeline under hardware constraints
+«Built to demonstrate deep learning pipeline under limited hardware constraints»
 
 ---
 
-### 🔹 2. Pretrained Model
+🔹 Pretrained Model
 
 Based on:
 
-**"Colorful Image Colorization" — Zhang et al. (ECCV 2016)**
+"Colorful Image Colorization" — Zhang et al. (ECCV 2016)
 
 - Trained on large-scale datasets
 - Implemented using OpenCV DNN (Caffe)
@@ -56,82 +64,41 @@ Based on:
 
 ---
 
-## 🧪 How It Works
+⚙️ Pretrained Model Handling
+
+Due to GitHub’s 100MB file size limit, the pretrained model is not stored in the repository.
+
+Instead:
+
+- 📥 It is automatically downloaded at runtime
+- ⚡ Cached after first use
+- 🚀 Ensures smooth deployment on Streamlit Cloud
+
+---
+
+🧪 How It Works
 
 1. Convert image → LAB color space
 2. Extract L channel (grayscale)
 3. Predict AB channels using model
-4. Combine L + AB
+4. Merge L + AB
 5. Convert back to RGB
 
 ---
 
-## 🖼️ Pipeline Visualization
+🖼️ Visuals
+
+🔹 Pipeline
 
 ![Pipeline](assets/image_process.jpg)
 
----
-
-## 🧬 LAB Color Space
+🔹 LAB Color Space
 
 ![LAB](assets/LAB-color.webp)
 
----
-
-## 🏗️ Model Architecture
+🔹 Network Architecture
 
 ![Architecture](assets/network-architecture.webp)
-
----
-
-## ⚙️ Installation
-
-```bash
-git clone https://github.com/grvsnh/Image-Colorization.git
-```
-
-```bash
-cd Image-Colorization
-```
-
-```bash
-python -m venv venv
-```
-
-```bash
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-```
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-▶️ Run the App
-
-```bash
-streamlit run app.py
-```
-
----
-
-🖥️ Usage
-
-1. Upload a grayscale image
-
-2. Select mode:
-
-    Use Both (Compare)
-
-    Local Model
-
-    Pretrained Model
-
-3. Click Colorize
-
-4. Download result
 
 ---
 
@@ -148,10 +115,7 @@ Image-Colorization/
 │ ├── local-trained/
 │ │ └── colorization_model.keras
 │ │
-│ ├── pre-trained/
-│ │ ├── colorization_release_v2.caffemodel
-│ │ ├── colorization_deploy_v2.prototxt
-│ │ └── pts_in_hull.npy
+│ ├── pre-trained/ # auto-downloaded at runtime
 │ │
 │ └── model_training/
 │ ├── core_model.ipynb
@@ -164,34 +128,46 @@ Image-Colorization/
 
 ---
 
-🧠 Limitations
+▶️ Run Locally
 
-Local model produces less realistic colors
+```bash
+git clone https://github.com/your-username/Image-Colorization.git
+```
 
-Training limited due to hardware constraints
+```bash
+cd Image-Colorization
+```
 
-Colorization is inherently ambiguous
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+```bash
+pip install -r requirements.txt
+```
+
+```bash
+streamlit run app.py
+```
 
 ---
 
-🔮 Future Improvements
+⚠️ Limitations
 
-GAN-based colorization
-
-Better dataset (COCO / ImageNet subset)
-
-Real-time video colorization
-
-Web deployment with GPU
+- Local model is less accurate than pretrained
+- Colorization is inherently ambiguous
+- Results depend on image context
 
 ---
 
 📚 References
 
-Zhang, R., Isola, P., & Efros, A. A. (2016). Colorful Image Colorization
+- Zhang, R., Isola, P., & Efros, A. A. (2016).
+  Colorful Image Colorization
 
-OpenCV DNN Module
+- OpenCV DNN Module
 
-TensorFlow / Keras
+- TensorFlow / Keras
 
 ---
